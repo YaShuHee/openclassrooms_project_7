@@ -46,3 +46,6 @@ venv.bak/
 *.pk
 *.pem
 *.pub
+
+# results directory (big files)
+results/
