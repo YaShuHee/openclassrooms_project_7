@@ -69,19 +69,21 @@ def archive_results(results, csv_file_name):
 def main():
     limit_price = 500
     parser = argparse.ArgumentParser(description="Bruteforce dataset to find best actions.")
-    parser.add_argument("-d", "--dataset-file", help="CSV dataset file to analyse.",
+    parser.add_argument("-i", "--input", help="CSV dataset file to analyse.",
                         required=True, type=argparse.FileType("r"))
-    parser.add_argument("-r", "--results-file", help="CSV file name to create.")
     args = parser.parse_args()
-    actions = extract_dataset(args.dataset_file)
+    actions = extract_dataset(args.input)
     print(f"*** Extracted {len(actions)} actions from CSV dataset. ***")
     print("*** Generating groups of actions (can take several minutes). ***")
     groups = create_groups(actions, limit_price)
     print(f"*** Generated {len(groups)} groups of actions with a total price under or equal to {limit_price}. ***")
     results = [calculate_group_profit(group) for group in groups]
-    print("*** Generating results CSV. ***")
-    file_name = archive_results(results, args.results_file)
-    print(f"*** Successfully created CSV file '{file_name}'. ***")
+    best_group = max(results, key=lambda g: g[1])
+    print("*** Best group found ***")
+    print(" -> Actions to buy :")
+    for action in best_group[0]:
+        print(f"\t- {action}")
+    print(f" -> Profit : {best_group[1]}€")
 
 
 if __name__ == '__main__':
