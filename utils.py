@@ -31,7 +31,7 @@ class Group:
         self.profit = self.calculate_profit()
 
     def __str__(self):
-        data = [action.serialized for action in self.actions]
+        data = [action.serialized for action in sorted(self.actions, key=lambda a: a.profit, reverse=True)]
         data.append({"Name": "TOTAL", "Price (€)": self.price, "Profit (€)": self.profit})
         df = pandas.DataFrame(data)
         return df.to_string(index=False)
