@@ -23,6 +23,7 @@ def create_group(actions, limit_price):
     length = len(actions)
     actions = sorted(actions, key=lambda action: action.price)
     actions = sorted(actions, key=lambda action: action.profit, reverse=True)
+    actions = sorted(actions, key=lambda action: action.price_by_profit)
     while c < length:
         simulation = price + actions[c].price
         if simulation < 500:

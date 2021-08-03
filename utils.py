@@ -13,13 +13,14 @@ class Action:
         self.price = float(price)
         self.profit_percentage = float(profit)
         self.profit = self.price * self.profit_percentage / 100
+        self.price_by_profit = round(self.price / self.profit, 5)
 
     def __str__(self):
         return f"{self.name}({self.price}€) => +{self.profit}€"
 
     @cached_property
     def serialized(self):
-        to_serialize = ["name", "price (€)", "profit (€)"]
+        to_serialize = ["name", "price (€)", "profit (€)", "price_by_profit"]
         return {key.capitalize(): object.__getattribute__(self, key.replace(" (€)", "")) for key in to_serialize}
 
 
@@ -29,12 +30,20 @@ class Group:
         self.actions = actions
         self.price = self.calculate_price()
         self.profit = self.calculate_profit()
+        self.price_by_profit = self.calculate_price_by_profit()
 
     def __str__(self):
-        data = [action.serialized for action in sorted(self.actions, key=lambda a: a.profit, reverse=True)]
-        data.append({"Name": "TOTAL", "Price (€)": self.price, "Profit (€)": self.profit})
+        data = [action.serialized for action in sorted(self.actions, key=lambda a: a.price_by_profit)]
+        data.append(self.serialized)
         df = pandas.DataFrame(data)
         return df.to_string(index=False)
+
+    @cached_property
+    def serialized(self):
+        to_serialize = ["price (€)", "profit (€)", "price_by_profit"]
+        serialized = {key.capitalize(): object.__getattribute__(self, key.replace(" (€)", "")) for key in to_serialize}
+        serialized["Name"] = "TOTAL"
+        return serialized
 
     def calculate_price(self):
         """ Calculate an actions group total price. """
@@ -49,3 +58,7 @@ class Group:
         for action in self.actions:
             profit += action.profit
         return profit
+
+    def calculate_price_by_profit(self):
+        """ Calculate an actions group price by profit. """
+        return self.price / self.profit
