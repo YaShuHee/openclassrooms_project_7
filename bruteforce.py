@@ -30,15 +30,19 @@ def main():
     parser = argparse.ArgumentParser(description="Bruteforce dataset to find best actions.")
     parser.add_argument("-i", "--input", help="CSV dataset file to analyse.",
                         required=True, type=argparse.FileType("r"))
+    parser.add_argument("-v", '--verbose', help="Verbose mode active when used.", action="store_true")
     args = parser.parse_args()
     actions = extract_dataset(args.input)
-    print(f"*** Extracted {len(actions)} actions from CSV dataset. ***")
-    print("*** Generating groups of actions (can take several minutes). ***")
+    if args.verbose:
+        print(f"*** Extracted {len(actions)} actions from CSV dataset. ***")
+        print("*** Generating groups of actions (can take several minutes). ***")
     groups = create_groups(actions, limit_price)
-    print(f"*** Generated {len(groups)} groups of actions with a total price under or equal to {limit_price}. ***")
-    print("*** Looking for the group with highest profit. ***")
+    if args.verbose:
+        print(f"*** Generated {len(groups)} groups of actions with a total price under or equal to {limit_price}. ***")
+        print("*** Looking for the group with highest profit. ***")
     best_group = max(groups, key=lambda g: g.profit)
-    print("*** Best group found ***\n")
+    if args.verbose:
+        print("*** Best group found ***\n")
     print(best_group)
 
 
