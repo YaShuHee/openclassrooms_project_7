@@ -44,7 +44,7 @@ def main():
     print(f"*** Extracted {old_len} actions from CSV dataset. ***")
     print("*** Sorting actions and removing worst. ***")
     best_group = create_group(actions, limit_price)
-    new_len = len(actions)
+    new_len = len(best_group.actions)
     print(f"*** Sorted and kept {new_len} actions (removed {old_len - new_len} of {old_len}). ***")
     print("*** Best group found ***\n")
     print(best_group)
