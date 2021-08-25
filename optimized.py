@@ -2,56 +2,41 @@
 # coding: utf-8
 
 
-import argparse
-import csv
-import itertools
-
-from utils import Action, Group
+from utils import Action, Group, Wrapper
 
 
-def extract_dataset(csv_file) -> list:
-    """ Extract the dataset from a CSV file. """
-    with csv_file:
-        reader = csv.DictReader(csv_file)
-        return [Action(**action_row) for action_row in reader]
-
-
-def create_group(actions, limit_price):
-    """ Sort the actions by profit. Makes a group whose price is under the limit price, from the best actions."""
-    price, c = 0, 0
+def select_group(actions, limit_price):
+    """ Sort the actions by price_by_profit. Makes a group whose price is under the limit price, from the best actions.
+    """
+    price, c, last_kept = 0, 0, 0
     to_keep = []
     length = len(actions)
+
+    average_price_by_profit = Group(actions).price_by_profit
+
     actions = sorted(actions, key=lambda action: action.price)
     actions = sorted(actions, key=lambda action: action.profit, reverse=True)
     actions = sorted(actions, key=lambda action: action.price_by_profit)
+
     while c < length:
         simulation = price + actions[c].price
-        if simulation < 500:
+        if simulation < limit_price and actions[c].price_by_profit < average_price_by_profit * 1.5:
             price = simulation
             to_keep.append(actions[c])
+            last_kept = c
         c += 1
+    c = last_kept + 1
+
+    while c < length:
+        active_group = Group(to_keep)
+        tmp_group = Group(to_keep[:-1] + [actions[c]])
+        if tmp_group.price < limit_price and actions[c].price_by_profit < average_price_by_profit * 1.5\
+                and tmp_group.price_by_profit > active_group.price_by_profit:
+            to_keep[-1] = actions[c]
+        c += 1
+
     return Group(to_keep)
 
 
-def main():
-    limit_price = 500
-    parser = argparse.ArgumentParser(description="Bruteforce dataset to find best actions.")
-    parser.add_argument("-i", "--input", help="CSV dataset file to analyse.",
-                        required=True, type=argparse.FileType("r"))
-    parser.add_argument("-v", '--verbose', help="Verbose mode active when used.", action="store_true")
-    args = parser.parse_args()
-    actions = extract_dataset(args.input)
-    if args.verbose:
-        old_len = len(actions)
-        print(f"*** Extracted {old_len} actions from CSV dataset. ***")
-        print("*** Sorting actions and removing worst. ***")
-    best_group = create_group(actions, limit_price)
-    if args.verbose:
-        new_len = len(best_group.actions)
-        print(f"*** Sorted and kept {new_len} actions (removed {old_len - new_len} of {old_len}). ***")
-        print("*** Best group found ***\n")
-    print(best_group)
-
-
 if __name__ == '__main__':
-    main()
+    Wrapper(select_group).run()
